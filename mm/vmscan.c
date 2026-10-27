@@ -1992,18 +1992,25 @@ shrink_inactive_list(unsigned long nr_to_scan, struct lruvec *lruvec,
 		 * that pages are cycling through the LRU faster than
 		 * they are written so also forcibly stall.
 		 */
-		if (stat.nr_immediate && current_may_throttle())
-			congestion_wait(BLK_RW_ASYNC, HZ/10);
+if (stat.nr_immediate && current_may_throttle()) {
+			if (current->flags & PF_KTHREAD)
+				congestion_wait(BLK_RW_ASYNC, HZ/50);
+			else
+				cond_resched();
+		}
 	}
 
 	/*
-	 * Stall direct reclaim for IO completions if underlying BDIs or zone
-	 * is congested. Allow kswapd to continue until it starts encountering
-	 * unqueued dirty pages or cycling through the LRU too quickly.
+	 * ТЮНИНГ: Не даем ядру усыплять UI-потоки на 100мс при очистке памяти.
+	 * Фоновые потоки ядра ждут 20мс (HZ/50), а приложения мгновенно отдают квант времени.
 	 */
 	if (!sc->hibernation_mode && !current_is_kswapd() &&
-	    current_may_throttle())
-		wait_iff_congested(pgdat, BLK_RW_ASYNC, HZ/10);
+	    current_may_throttle()) {
+		if (current->flags & PF_KTHREAD)
+			wait_iff_congested(pgdat, BLK_RW_ASYNC, HZ/50);
+		else
+			cond_resched();
+	}
 
 	trace_mm_vmscan_lru_shrink_inactive(pgdat->node_id,
 			nr_scanned, nr_reclaimed,
