@@ -59,7 +59,7 @@ jobs:
                        toolchain=$TOOLCHAIN \
                        +performance \
                        +io_anxiety \
-                       +magisk \
+                       -magisk \
                        +nohardening \
                        +ttl \
                        +wireguard \
