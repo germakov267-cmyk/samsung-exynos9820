@@ -58,6 +58,10 @@ jobs:
                        name="Cruel-Elite" \
                        toolchain=$TOOLCHAIN \
                        +performance \
+                       +tcp_bbr \
+                       +fp_boost \
+                       +noatime \
+                       +300hz \
                        +io_anxiety \
                        -magisk \
                        +nohardening \
