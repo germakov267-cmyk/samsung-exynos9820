@@ -7690,6 +7690,20 @@ static int find_energy_efficient_cpu(struct sched_domain *sd,
 		}
 	}
 
+	/* 
+	 * ТЮНИНГ CRUEL-ELITE: Fast-Path для мгновенного отклика UI и игр.
+	 * Если задача интерактивная (игра на экране, физика, касание),
+	 * минуем долгий расчет энергопотребления на слабых ядрах A55
+	 * и сразу отдаем задачу на сбалансированные производительные ядра Cortex-A75 (ядра 4-5)!
+	 */
+	if (task_util(p) > 150 || p->prio < 120) {
+		int fast_cpu;
+		for (fast_cpu = 4; fast_cpu <= 5; fast_cpu++) {
+			if (cpu_online(fast_cpu) && idle_cpu(fast_cpu) &&
+			    cpumask_test_cpu(fast_cpu, &p->cpus_allowed))
+				return fast_cpu;
+		}
+	}
 	/* prepopulate energy diff environment */
 	eenv = get_eenv(p, prev_cpu);
 	if (eenv->max_cpu_count < 2)
