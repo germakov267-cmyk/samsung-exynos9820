@@ -1137,6 +1137,9 @@ static void get_current_freq(struct exynos_dm_data *dm_data, u32 *cur_freq)
 static void get_target_freq(struct exynos_dm_data *dm_data, u32 *target_freq)
 {
 	*target_freq = dm_data->target_freq;
+	/* ТЮНИНГ: Защита шины памяти от просадок ниже 825 МГц */
+	if (*target_freq < 825000)
+		*target_freq = 825000;
 }
 
 static int exynos_dm_suspend(struct device *dev)
