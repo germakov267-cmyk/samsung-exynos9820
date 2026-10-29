@@ -246,10 +246,10 @@ static bool sugov_up_down_rate_limit(struct sugov_policy *sg_policy, u64 time,
 
 	delta_ns = time - sg_policy->last_freq_update_time;
 
-	/* ТЮНИНГ ТАЧБУСТА: Мгновенный взлет частоты вверх без задержки! */
-	if (next_freq > sg_policy->next_freq)
-			return false;
-
+	/* ТЮНИНГ v3.0: Мгновенный взлет с микрозадержкой 0.5мс для защиты от шторма */
+	if (next_freq > sg_policy->next_freq &&
+	    delta_ns < 500000)
+			return true;
 	if (next_freq < sg_policy->next_freq &&
 	    delta_ns < sg_policy->down_rate_delay_ns)
 			return true;
